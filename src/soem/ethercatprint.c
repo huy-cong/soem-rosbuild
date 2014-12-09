@@ -52,7 +52,7 @@
 #include "ethercattype.h"
 #include "ethercatmain.h"
 
-#define EC_MAXERRORNAME 127
+#define EC_MAXERRORNAME 750
 
 /** SDO error list type definition */
 typedef struct
@@ -89,6 +89,15 @@ typedef struct
    /** Readable description */
    char                errordescription[EC_MAXERRORNAME + 1];
 } ec_mbxerrorlist_t;
+
+/** Emergency error list type definition */
+typedef struct
+{
+	/** Emergency error code */
+	uint16		errorcode;
+	/** Readable description */
+	char 		errordescription[EC_MAXERRORNAME + 1];
+}ec_emergencyerrorlist_t;
 
 char estring[EC_MAXERRORNAME];
 
@@ -253,6 +262,50 @@ const ec_mbxerrorlist_t ec_mbxerrorlist[] = {
    {0xffff, "Unknown"}
 };
 
+/** Emergency error list definition */
+const ec_emergencyerrorlist_t ec_emergencyerrorlist[] = {
+	{0x6300, "Object mapped to an RPDO returned an error during interpretation or a referenced motion failed to be performed" },
+	{0x2311, "Reserved"}, 
+	{0x2340, "Short circuit: motor or its wiring may be defective, or drive is faulty"},
+ 	{0x8312, "Reserved"},
+	{0x3100, "Reserved"},
+	{0x3120, "Under-voltage: power supply is shut down or it has too high an output impedance"},
+	{0x3310, "Over-voltage: power-supply voltage is too high or servo drive could not absorb kinetic energy while braking a load. A shunt resistor may be required."},
+ 	{0xFF20, "Safety switch is sensed – drive in safety state"},
+  	{0x4310, "Temperature: drive overheating. The environment is too hot or heat removal is not efficient. Could be due to large thermal resistance between drive and its mounting"},  
+	{0x8110, "CAN message lost (corrupted or overrun)"},
+	{0x8130, "Heartbeat event"}, 
+	{0x8200, "Protocol error (unrecognized NMT request)"}, 
+	{0x5400, "Cannot start motor"}, 
+	{0x5441, "Disabled by switch"}, 
+	{0x5442, "Disable by switch that is defined as external abort"}, 
+	{0x6320, "Cannot start because of inconsistent database. The type of database inconsistency is reflected in the status SR report, and in the CD CPU dump report"}, 
+	{0x7121, "Motor stuck - the motor is powered but is not moving according to the definition of CL[2] and CL[3]"}, 
+	{0x7306, "Reserved"},
+	{0x8210, "Attempt to access a non-configured RPDO"},   
+	{0x8311, "The peak current has been exceeded. Possible reasons are drive malfunction or bad tuning of the current controller"}, 
+	{0x8611, "Position tracking error DV[3] - PX (UM=5) or DV[3] - PY (UM=4) exceeded position error limit ER[3]. This may occur due to: \n 1) Bad tuning of the position or speed controller \n 2) Too tight a position error tolerance \n 3) Abnormal motor load, or reaching a mechanical limit"},
+	{0xFF02, "DS 402 IP Underflow"}, 
+	{0x1000, "Reserved"},
+	{0x5280, "Too large a difference in ECAM table"},
+ 	{0x5281, "Timing Error"},
+ 	{0x5282, "Reserved"},  
+	{0x6180, "Fatal CPU error: stack overflow"}, 
+	{0x6181, "CPU exception - fatal exception. Something such as an attempt to divide in zero or another fatal firmware error has occurred. Use the CD command to get the CPU dump and report to your service center"},
+	{0x6200, "User program aborted by an error"},
+	{0x7300, "1) Resolver feedback is not ready – Resolver angle was not found yet. \n 2) Analog encoder or Resolver feedback is either lost or with too low amplitude."}, 
+	{0x7380, "Feedback loss: no match between encoder and Hall location. Available in encoder + Hall feedback systems"}, 
+    {0x7381, "Two digital Hall sensors were changed at the same time. Error occurs because digital Hall sensors must be changed one at a time"}, 
+	{0x8380, "Failed to find the electrical zero of the motor in an attempt to start it with an incremental encoder and no digital Hall sensors. The reason may be that the applied motor current did not suffice for moving the motor from its position"},
+	{0x8480, "Speed tracking error DV[2] - VX (for UM=2 or UM=4, 5) exceeded speed error limit ER[2]. This may occur due to: \n 1) Bad tuning of the speed controller \n 2) Too tight a speed error tolerance \n 3) Inability of motor to accelerate to the required speed due to too low a line voltage or not a powerful enough motor"},
+	{0x8481, "Speed limit exceeded: VX<LL[2] or VX>HL[2]. (Compatibility only)"},
+	{0x8680, "Position limit exceeded: PX<LL[3] or PX>HL[3] (UM=5), or PY<LL[3] or PY>HL[3] (UM=4). (Compatibility only)"}, 
+	{0xFF00, "Elmo Error code: 56 - Queue is low. Number of yet unexecuted PVT table rows has dropped below the value stated in MP[4] \n Elmo Error code: 5b - Write pointer is out of physical range ([1...64]) of PVT table. Reason may be an improper setting of MP[6] \n Elmo Error code: 5c - (Reserved for Compatibility reason) \n Elmo Error code: 34 - An attempt has been made to program more PVT points than are available in queue \n Elmo Error code: 07 - Cannot initialize motion due to bad setup data. The write pointer is outside the range specified by the start and end pointers \n Elmo Error code: 08 - Mode terminated and motor has been automatically stopped (in MO=1) \n Elmo Error code: 09 - A CAN message has been lost. \n"},  
+	{0xFF01, "Request by user program “emit” function"},
+	{0xFF10, "Cannot start motor"},	
+	{0xFFFF, "Unknown"}
+};
+
 /** Look up text string that belongs to SDO error code.
  *
  * @param[in] sdoerrorcode   = SDO error code as defined in EtherCAT protocol
@@ -325,6 +378,25 @@ char* ec_mbxerror2string( uint16 errorcode)
    return (char *) ec_mbxerrorlist[i].errordescription;
 }
 
+/** Look up text string that belongs to emergency error code.
+ *
+
+ * @param[in] errorcode   = emergency error code as defined in EtherCAT protocol
+ * @return readable string
+ */
+char* ec_emergencyerror2string( uint16 errorcode)
+{
+   int i = 0;
+
+   while ( (ec_emergencyerrorlist[i].errorcode != 0xffff) && 
+           (ec_emergencyerrorlist[i].errorcode != errorcode) ) 
+   {
+      i++;
+   }
+    
+   return (char *) ec_emergencyerrorlist[i].errordescription;
+}
+
 /** Look up error in ec_errorlist and convert to text string.
  *
  * @param[in]  context        = context struct
@@ -348,8 +420,8 @@ char* ecx_elist2string(ecx_contextt *context)
          }
          case EC_ERR_TYPE_EMERGENCY:
          {   
-            sprintf(estring, "%s EMERGENCY slave:%d error:%4.4x\n", 
-                    timestr, Ec.Slave, Ec.ErrorCode);            
+            sprintf(estring, "%s EMERGENCY slave:%d error:%4.4x %s\n", 
+                    timestr, Ec.Slave, Ec.ErrorCode, ec_emergencyerror2string(Ec.ErrorCode));            
             break;
          }
          case EC_ERR_TYPE_PACKET_ERROR:
