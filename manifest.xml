@@ -1,0 +1,18 @@
+<package>
+  <description brief="soem_core">
+
+     SOEM is an open source EtherCAT master library written in c. Its
+     primary target is Linux but can be adapted to other OS and
+     embedded systems.
+  </description>
+  <author>AKTER Hemia and VU  Huy Cong</author>
+  <Copyright>GPL+linking exception</Copyright>
+  <review status="unreviewed" notes=""/>
+  <url>http://www.wandercraft.eu</url>
+  <depend package="rtt" />
+  <export>
+    <cpp cflags="-I${prefix}/build/soem_core/SOEM1.3.0/soem -I${prefix}/build/soem_core/SOEM1.3.0/oshw/linux -I${prefix}/build/soem_core/SOEM1.3.0/osal/linux" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lsoem_core"/>
+  </export>
+</package>
+
+
