@@ -584,7 +584,9 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
                   if (context->slavelist[slave].CoEdetails & ECT_COEDET_SDOCA) /* has Complete Access */
                      /* read PDO mapping via CoE and use Complete Access */
                   {
-                     rval = ecx_readPDOmapCA(context, slave, &Osize, &Isize);
+		     /* do not apply this if Elmo product is found */
+		     if ((context->slavelist[slave].eep_man!=0x0009A)&&(context->slavelist[slave].eep_id!=0x30924))
+                     	rval = ecx_readPDOmapCA(context, slave, &Osize, &Isize);
                   }
                   if (!rval) /* CA not available or not succeeded */
                   {
