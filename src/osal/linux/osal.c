@@ -19,6 +19,7 @@
  */
 
 #include <time.h>
+#include <posix/time.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <osal.h>
