@@ -51,7 +51,7 @@ extern "C"
 {
 #endif
 
-#include <pthread.h>
+#include <posix/pthread.h>
 
 /** pointer structure to Tx and Rx stacks */
 typedef struct
