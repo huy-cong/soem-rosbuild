@@ -13,6 +13,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sys/mman.h>
+#include <pthread.h>
 
 #include "ethercattype.h"
 #include "nicdrv.h"
@@ -24,6 +26,7 @@
 #include "ethercatprint.h"
 
 char IOmap[4096];
+pthread_t thread;
 ec_ODlistt ODlist;
 ec_OElistt OElist;
 boolean printSDO = FALSE;
@@ -507,11 +510,12 @@ void si_sdo(int cnt)
     }
 }
 
-void slaveinfo(char *ifname)
+void slaveinfo(void* ptr)
 {
    int cnt, i, j, nSM;
     uint16 ssigen;
     int expectedWKC;
+	char* ifname="rteth0";
    
    printf("Starting slaveinfo\n");
    
@@ -621,14 +625,30 @@ void slaveinfo(char *ifname)
 
 int main(int argc, char *argv[])
 {
+	struct sched_param param;
+	pthread_attr_t p_attr;
    printf("SOEM (Simple Open EtherCAT Master)\nSlaveinfo\n");
    
+	mlockall(MCL_CURRENT | MCL_FUTURE);
    if (argc > 1)
    {      
+		/* attribut set */
+		pthread_attr_init(&p_attr);
+		/* SCHED_FIFO must be use */
+		pthread_attr_setschedpolicy(&p_attr,SCHED_FIFO);
+		pthread_attr_setdetachstate(&p_attr, PTHREAD_CREATE_JOINABLE);
+		param.sched_priority = 10;
+		pthread_attr_setschedparam(&p_attr, &param);
+		/* this attribut is needed to unify scheduler of all thread */
+		pthread_attr_setinheritsched(&p_attr, PTHREAD_EXPLICIT_SCHED);
       if ((argc > 2) && (strncmp(argv[2], "-sdo", sizeof("-sdo")) == 0)) printSDO = TRUE;
       if ((argc > 2) && (strncmp(argv[2], "-map", sizeof("-map")) == 0)) printMAP = TRUE;
       /* start slaveinfo */
-      slaveinfo(argv[1]);
+		pthread_create( &thread, &p_attr, (void *) &slaveinfo, NULL);
+		pthread_join(thread, 0);
+		/*exit thread */
+		pthread_exit(&thread);
+		pthread_attr_destroy(&p_attr);
    }
    else
    {

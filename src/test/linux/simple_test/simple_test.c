@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
+#include <sys/mman.h>
 #include <unistd.h>
 #include <pthread.h>
 
@@ -28,18 +29,19 @@
 #define EC_TIMEOUTMON 500
 
 char IOmap[4096];
-pthread_t thread1;
+pthread_t thread1,thread2;
 int expectedWKC;
 boolean needlf;
 volatile int wkc;
 boolean inOP;
 uint8 currentgroup = 0;
 
-void simpletest(char *ifname)
+void simpletest( void *ptr )
 {
     int i, j, oloop, iloop, wkc_count, chk;
     needlf = FALSE;
     inOP = FALSE;
+	char* ifname = "rteth0";
 
    printf("Starting simple test\n");
    
@@ -233,14 +235,49 @@ void ecatcheck( void *ptr )
 int main(int argc, char *argv[])
 {
     int iret1;
+	struct sched_param param;
+	pthread_attr_t p_attr1, p_attr2;
+
    printf("SOEM (Simple Open EtherCAT Master)\nSimple test\n");
+
+	mlockall(MCL_CURRENT | MCL_FUTURE);
 
    if (argc > 1)
    {      
-      /* create thread to handle slave error handling in OP */
-      iret1 = pthread_create( &thread1, NULL, (void *) &ecatcheck, (void*) &ctime);   
-      /* start cyclic part */
-      simpletest(argv[1]);
+		/* attribut set */
+		pthread_attr_init(&p_attr1);
+		/* SCHED_FIFO must be use */
+		pthread_attr_setschedpolicy(&p_attr1,SCHED_FIFO);
+		pthread_attr_setdetachstate(&p_attr1, PTHREAD_CREATE_JOINABLE);
+		param.sched_priority = 10;
+		pthread_attr_setschedparam(&p_attr1, &param);
+		/* this attribut is needed to unify scheduler of all thread */
+		pthread_attr_setinheritsched(&p_attr1, PTHREAD_EXPLICIT_SCHED);
+
+		/*same settings with p_attr2 */
+		pthread_attr_init(&p_attr2);
+		pthread_attr_setschedpolicy(&p_attr2, SCHED_FIFO);
+		pthread_attr_setdetachstate(&p_attr2, PTHREAD_CREATE_JOINABLE);
+		param.sched_priority = 1;
+		pthread_attr_setschedparam(&p_attr2, &param);
+		pthread_attr_setinheritsched(&p_attr2, PTHREAD_EXPLICIT_SCHED);
+
+   		/* create thread */
+ 		pthread_create( &thread1, &p_attr1, (void *) &simpletest, NULL);
+		/* create thread to handle slave error handling in OP */
+   		pthread_create( &thread2, &p_attr2, (void *) &ecatcheck, (void*) &ctime);
+
+   		/* wait for the thread to terminate */
+		pthread_join(thread1, 0);
+		pthread_join(thread2, 0);
+
+		/*exit thread */
+		pthread_exit(&thread1);
+		pthread_exit(&thread2);
+
+		pthread_attr_destroy(&p_attr1);
+		pthread_attr_destroy(&p_attr2);
+   
    }
    else
    {
