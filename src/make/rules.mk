@@ -38,9 +38,15 @@ LD_PATHS = $(patsubst %,-L%,$(LD_PATH))
 # Dependency generation
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 
+XENO_CONFIG=/usr/xenomai/bin/xeno-config
+XENO_POSIX_CFLAGS = $(shell DESTDIR=$(XENO_DESTDIR) $(XENO_CONFIG) --skin=posix --cflags)
+XENO_POSIX_LIBS = $(shell DESTDIR=$(XENO_DESTDIR) $(XENO_CONFIG) --skin=posix --ldflags)
+
 # Common settings
-CFLAGS += -g -O0 -ffunction-sections -D RTNET -I/usr/xenomai/include -D_GNU_SOURCE -D_REENTRANT -D__XENO__ -I/usr/xenomai/include/posix
-LDFLAGS += -Wl,--gc-sections -Wl,--no-as-needed -lnative -Wl,@/usr/xenomai/lib/posix.wrappers -L/usr/xenomai/lib -lrtdm -lpthread_rt -lxenomai -lpthread -lrt
+CFLAGS += -g -O0 -ffunction-sections 
+CFLAGS += $(XENO_POSIX_CFLAGS)
+LDFLAGS += -Wl,--gc-sections -Wl,--no-as-needed 
+LDFLAGS += $(XENO_POSIX_LIBS) 
 
 # Command-line overrides
 CFLAGS   += $(EXTRA_CFLAGS)
