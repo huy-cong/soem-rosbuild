@@ -646,8 +646,6 @@ int main(int argc, char *argv[])
       /* start slaveinfo */
 		pthread_create( &thread, &p_attr, (void *) &slaveinfo, NULL);
 		pthread_join(thread, 0);
-		/*exit thread */
-		pthread_exit(&thread);
 		pthread_attr_destroy(&p_attr);
    }
    else

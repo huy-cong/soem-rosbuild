@@ -31,6 +31,7 @@
 char IOmap[4096];
 pthread_t thread1,thread2;
 int expectedWKC;
+boolean running = TRUE;
 boolean needlf;
 volatile int wkc;
 boolean inOP;
@@ -122,6 +123,7 @@ void simpletest( void *ptr )
                     usleep(5000);
                     
                 }
+                running = TRUE;
                 inOP = FALSE;
             }
             else
@@ -149,6 +151,7 @@ void simpletest( void *ptr )
         printf("End simple test, close socket\n");
         /* stop SOEM, close socket */
         ec_close();
+        running =FALSE;
     }
     else
     {
@@ -160,7 +163,7 @@ void ecatcheck( void *ptr )
 {
     int slave;
 
-    while(1)
+    while(running)
     {
         if( inOP && ((wkc < expectedWKC) || ec_group[currentgroup].docheckstate))
         {
@@ -271,9 +274,6 @@ int main(int argc, char *argv[])
 		pthread_join(thread1, 0);
 		pthread_join(thread2, 0);
 
-		/*exit thread */
-		pthread_exit(&thread1);
-		pthread_exit(&thread2);
 
 		pthread_attr_destroy(&p_attr1);
 		pthread_attr_destroy(&p_attr2);
