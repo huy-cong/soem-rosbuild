@@ -29,9 +29,16 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
+#set Xenomai version for compatibility
+#possible values: XENOMAI_2, XENOMAI_3
+set (XENOMAI_VERSION XENOMAI_3)
 
 #common commands for building c++ executables and libraries
+if (XENOMAI_VERSION MATCHES XENOMAI_2)
 find_path(RTNET_INCLUDE_DIR NAMES rtnet.h PATH_SUFFIXES /rtnet/include)
+else if (XENOMAI_VERSION MATCHES XENOMAI_3)
+find_path(RTNET_INCLUDE_DIR NAMES rtnet.h PATH_SUFFIXES /net/stack/include)
+endif
 option(ENABLE_RTNET "Enable RTnet over Xenomai." ON)
 
 

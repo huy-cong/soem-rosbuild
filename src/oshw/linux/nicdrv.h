@@ -51,7 +51,11 @@ extern "C"
 {
 #endif
 
+#ifdef XENOMAI_3
+#include <cobalt/pthread.h>
+#else 
 #include <posix/pthread.h>
+#endif
 
 /** pointer structure to Tx and Rx stacks */
 typedef struct

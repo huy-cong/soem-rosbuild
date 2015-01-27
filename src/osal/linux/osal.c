@@ -19,7 +19,11 @@
  */
 
 #include <time.h>
+#ifdef XENOMAI_3
+#include <cobalt/time.h>
+#else
 #include <posix/time.h>
+#endif
 #include <sys/time.h>
 #include <unistd.h>
 #include <osal.h>

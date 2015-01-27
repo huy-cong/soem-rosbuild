@@ -43,7 +43,7 @@ XENO_POSIX_CFLAGS = $(shell DESTDIR=$(XENO_DESTDIR) $(XENO_CONFIG) --skin=posix 
 XENO_POSIX_LIBS = $(shell DESTDIR=$(XENO_DESTDIR) $(XENO_CONFIG) --skin=posix --ldflags)
 
 # Common settings
-CFLAGS += -g -O0 -ffunction-sections 
+CFLAGS += -g -O0 -ffunction-sections -D XENOMAI_3
 CFLAGS += $(XENO_POSIX_CFLAGS)
 LDFLAGS += -Wl,--gc-sections -Wl,--no-as-needed 
 LDFLAGS += $(XENO_POSIX_LIBS) 
