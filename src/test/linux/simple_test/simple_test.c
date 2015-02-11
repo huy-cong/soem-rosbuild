@@ -120,7 +120,11 @@ void simpletest( void *ptr )
                         printf(" T:%lld\r",ec_DCtime);
                         needlf = TRUE;
                     }
-                    usleep(5000);
+					struct timespec sleep = {
+						0,
+						5000000
+					};
+					nanosleep(&sleep, NULL);
                     
                 }
                 running = TRUE;
@@ -231,7 +235,11 @@ void ecatcheck( void *ptr )
             if(!ec_group[currentgroup].docheckstate)
                printf("OK : all slaves resumed OPERATIONAL.\n");
         }
-        usleep(10000);
+		struct timespec sleep = {
+			0,
+			10000000
+		};
+		nanosleep(&sleep, NULL);
     }   
 }   
 
